@@ -15,7 +15,6 @@ export class UsersService {
   ) {}
 
   create(createUserDto: UserDto) {
-    console.log(createUserDto);
     const createdUser = new this.userModel(createUserDto);
 
     if (!createdUser) {
