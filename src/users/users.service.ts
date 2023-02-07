@@ -6,40 +6,42 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { ContactsPagination, UserDto } from './dto/user.dto';
 import { Users, UsersDocument } from './entities/user.entity';
-
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(Users.name) private userModel: Model<UsersDocument>,
   ) {}
 
-  create(createUserDto: CreateUserDto) {
+  create(createUserDto: UserDto) {
+    console.log(createUserDto);
     const createdUser = new this.userModel(createUserDto);
-
-    const findUser = this.userModel.findById(createdUser._id);
 
     if (!createdUser) {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }
 
-    if (findUser) {
-      throw new BadRequestException(HttpStatus.BAD_REQUEST);
-    }
-
     return createdUser.save();
   }
 
-  findAll() {
-    const users = this.userModel.find();
+  async findAll({ page = 1, limit = 3 }: ContactsPagination) {
+    const rawUsers = await this.userModel.find();
+
+    const total = rawUsers.length;
+    const pageStart = (Number(page) - 1) * Number(limit);
+    const pageEnd = pageStart + Number(limit);
+
+    const users = rawUsers.slice(pageStart, pageEnd);
 
     if (!users) {
       throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
     }
 
-    return users;
+    return {
+      users,
+      totalCount: total,
+    };
   }
 
   findOne(id: string) {
@@ -52,7 +54,7 @@ export class UsersService {
     return user;
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
+  update(id: string, updateUserDto: UserDto) {
     const updatedUser = this.userModel.findByIdAndUpdate(
       { _id: id },
       updateUserDto,

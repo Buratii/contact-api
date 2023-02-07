@@ -3,15 +3,15 @@ import { HydratedDocument } from 'mongoose';
 
 export type UsersDocument = HydratedDocument<Users>;
 
-@Schema()
+@Schema({ timestamps: true, validateBeforeSave: true })
 export class Users {
-  @Prop()
+  @Prop({ type: String, required: true })
   name: string;
 
-  @Prop()
+  @Prop({ type: String, required: true })
   phone: string;
 
-  @Prop()
+  @Prop({ type: String, required: true, unique: true })
   email: string;
 }
 
